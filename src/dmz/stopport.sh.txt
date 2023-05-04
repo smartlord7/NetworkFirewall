@@ -1,0 +1,23 @@
+#!/bin/bash
+
+# Check if port number is provided
+if [ -z "$1" ]; then
+  echo "Usage: $0 <port>"
+  exit 1
+fi
+
+# Get the process IDs of all processes using the specified port
+pids=$(sudo lsof -i :"$1" | awk '{print $2}' | tail -n +2)
+
+# If no processes are using the specified port, exit
+if [[ -z "$pids" ]]; then
+  echo "No processes using port $1"
+  exit 0
+fi
+
+# Send a SIGTERM signal to each process using the specified port
+for pid in $pids; do
+  sudo kill $pid
+done
+
+echo "Stopped all processes using port $1"

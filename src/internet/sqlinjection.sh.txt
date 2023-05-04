@@ -1,0 +1,1 @@
+echo "DROP clients;#" | nc -v 23.214.219.129 80

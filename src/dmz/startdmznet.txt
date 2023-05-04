@@ -1,0 +1,8 @@
+ Permissions
+chmod 777 dmznet.sh
+chmod 777 iptablesreset.sh
+chmod 777 testconn.sh
+
+./dmznet.sh
+./iptablesreset.sh
+./testconn.sh

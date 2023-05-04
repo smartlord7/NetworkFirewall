@@ -1,0 +1,1 @@
+snort -c /usr/local/src/snort-2.9.20/etc/snort.conf -Q 0 -A full -v -k none

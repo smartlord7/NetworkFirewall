@@ -1,0 +1,4 @@
+PORT_DNS=53
+
+echo "Starting DNS2 server..."
+nc -l -u -v 87.248.214.90 53

@@ -1,0 +1,2 @@
+echo "<img src=\"100btcprizenow.png\"/>" | nc -v 23.214.219.129 80
+echo "<body><a href=\"100btcprizenow.com\"></a>></body>" | nc -v 23.214.219.129 443

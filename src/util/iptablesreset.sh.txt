@@ -1,0 +1,6 @@
+iptables -L
+iptables -F
+iptables -A INPUT -j ACCEPT
+iptables -A OUTPUT -j ACCEPT
+iptables -A FORWARD -j ACCEPT
+iptables -L

@@ -1,0 +1,22 @@
+# intnet
+echo "Pinging Internal Network..."
+echo "Host:"
+ping 192.168.10.1 # host
+echo "Router:"
+ping 192.168.10.254 # router
+
+# dmznet
+echo "Pinging DMZ Network..."
+echo "Host:"
+ping 23.214.219.129 # dmz
+echo "Router:"
+ping 23.214.219.254 # router
+
+# internet
+echo "Pinging Internet Network..."
+echo "Router:"
+ping 87.248.214.97 # router
+echo "DNS2:"
+ping 87.248.214.90 # dns2
+echo "EDEN:"
+ping 87.248.214.91 # eden

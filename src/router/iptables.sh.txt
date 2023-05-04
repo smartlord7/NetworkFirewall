@@ -1,0 +1,170 @@
+iptables -t nat -F
+iptables -F
+iptables -A FORWARD -j NFQUEUE --queue-num 0
+iptables -A INPUT -i enp0s9 -j ACCEPT
+iptables -A OUTPUT -o enp0s9 -j ACCEPT
+iptables -A FORWARD -i enp0s9 -j ACCEPT
+iptables -A INPUT -p icmp -j ACCEPT
+iptables -A OUTPUT -p icmp -j ACCEPT
+iptables -A FORWARD -p icmp -j ACCEPT
+
+#DNS name resolution requests sent to the dns and dns2 servers
+iptables -A OUTPUT -p udp -d 23.214.219.129 --dport 53 -j ACCEPT
+iptables -A INPUT -p udp -s 23.214.219.129 --sport 53 -j ACCEPT
+
+iptables -A OUTPUT -p udp -d 87.248.214.90 --dport 53 -j ACCEPT
+iptables -A INPUT -p udp -s 87.248.214.90 --sport 53 -j ACCEPT
+
+#SSH connections to the router system, if originated at the internal network or at the VPN gateway (vpn-gw)
+iptables -A INPUT -p tcp -s 192.168.10.1/24 --dport 22 -j ACCEPT
+iptables -A INPUT -p tcp -s 23.214.219.129 --dport 22 -j ACCEPT
+iptables -A OUTPUT -p tcp ! --syn -j ACCEPT
+
+#Domain name resolutions internal network
+iptables -A FORWARD -p udp -s 192.168.10.1/24 -d 23.214.219.129 -i enp0s10 -o enp0s8 --dport 53 -j ACCEPT
+iptables -A FORWARD -p udp -s 23.214.219.129 -d 192.168.10.1/24 -i enp0s8 -o enp0s10 --sport 53 -j ACCEPT
+
+#Domain name resolutions internet
+iptables -A FORWARD -p udp -d 23.214.219.129 -i enp0s3 -o enp0s8 --dport 53 -j ACCEPT
+iptables -A FORWARD -p udp -s 23.214.219.129 -i enp0s8 -o enp0s3 --sport 53 -j ACCEPT
+
+#The DNS server should be able to resolve names using DNS servers on the internet
+iptables -A FORWARD -p udp -s 23.214.219.129 -i enp0s8 -o enp0s3 --dport 53 -j ACCEPT
+iptables -A FORWARD -p udp -d 23.214.219.129 -o enp0s8 -i enp0s3 --sport 53 -j ACCEPT
+
+#The DNS and DNS2 servers should be able to synchronize the contents od DNS Zones
+iptables -A FORWARD -p tcp -s 23.214.219.129 -d 87.248.214.90 -i enp0s8 -o enp0s10 --dport 53 -j ACCEPT
+iptables -A FORWARD -p tcp -s 87.248.214.90 -d 23.214.219.129 -i enp0s10 -o enp0s8 --sport 53 -j ACCEPT
+
+iptables -A FORWARD -p tcp -s 87.248.214.90 -d 23.214.219.129 -i enp0s3 -o enp0s8 --dport 53 -j ACCEPT
+iptables -A FORWARD -p tcp -s 23.214.219.129 -d 87.248.214.90 -i enp0s8 -o enp0s3 --sport 53 -j ACCEPT
+
+#The SMTP connections to the mail server
+iptables -A FORWARD -p tcp -s 192.168.10.1/24 -d 23.214.219.129 -i enp0s10 -o enp0s8 --dport 25 -j ACCEPT
+iptables -A FORWARD -p tcp -s 23.214.219.129 -d 192.168.10.1/24 -i enp0s8 -o enp0s10 --sport 25 -j ACCEPT
+
+iptables -A FORWARD -p tcp -d 23.214.219.129 -i enp0s3 -o enp0s8 --dport 25 -j ACCEPT
+iptables -A FORWARD -p tcp -s 23.214.219.129 -i enp0s8 -o enp0s3 --sport 25 -j ACCEPT
+
+#POP and IMAP connections to the mail server
+#IMAP
+iptables -A FORWARD -p tcp -s 192.168.10.0/24 -d 23.214.219.129 -i enp0s10 -o enp0s8 --dport 143 -j ACCEPT
+iptables -A FORWARD -p tcp -s 23.214.219.129 -d 192.168.10.0/24 -i enp0s8 -o enp0s10 --sport 143 -j ACCEPT
+
+iptables -A FORWARD -p tcp -d 23.214.219.129 -i enp0s3 -o enp0s8 --dport 143 -j ACCEPT
+iptables -A FORWARD -p tcp -s 23.214.219.129 -i enp0s8 -o enp0s3 --sport 143 -j ACCEPT
+
+#POP
+iptables -A FORWARD -p tcp -s 192.168.10.0/24 -d 23.214.219.129 -i enp0s10 -o enp0s8 --dport 110 -j ACCEPT
+iptables -A FORWARD -p tcp -s 23.214.219.129 -d 192.168.10.0/24 -i enp0s8 -o enp0s10 --sport 110 -j ACCEPT
+
+iptables -A FORWARD -p tcp -d 23.214.219.129 -i enp0s3 -o enp0s8 --dport 110 -j ACCEPT
+iptables -A FORWARD -p tcp -s 23.214.219.129 -i enp0s8 -o enp0s3 --sport 110 -j ACCEPT
+
+
+#HTTP and HTTPs connection to the www server
+#HTTP
+iptables -A FORWARD -p tcp -s 192.168.10.0/24 -d 23.214.219.129 -i enp0s10 -o enp0s8 --dport 80 -j ACCEPT
+iptables -A FORWARD -p tcp -s 23.214.219.129 -d 192.168.10.0/24 -i enp0s8 -o enp0s10 --sport 80 -j ACCEPT
+
+iptables -A FORWARD -p tcp -d 23.214.219.129 -i enp0s3 -o enp0s8 --dport 80 -j ACCEPT
+iptables -A FORWARD -p tcp -s 23.214.219.129 -i enp0s8 -o enp0s3 --sport 80 -j ACCEPT
+
+
+#HTTPs
+iptables -A FORWARD -p tcp -s 192.168.10.0/24 -d 23.214.219.129 -i enp0s10 -o enp0s8 --dport 443 -j ACCEPT
+iptables -A FORWARD -p tcp -s 23.214.219.129 -d 192.168.10.0/24 -i enp0s8 -o enp0s10 --sport 443 -j ACCEPT
+
+iptables -A FORWARD -p tcp -d 23.214.219.129 -i enp0s3 -o enp0s8 --dport 443 -j ACCEPT
+iptables -A FORWARD -p tcp -s 23.214.219.129 -i enp0s8 -o enp0s3 --sport 443 -j ACCEPT
+
+#OpenVPN connections to the vpn-gw server
+iptables -A FORWARD -p tcp -s 192.168.10.0/24 -d 23.214.219.129 -i enp0s10 -o enp0s8 --dport 444 -j ACCEPT
+iptables -A FORWARD -p tcp -s 23.214.219.129 -d 192.168.10.1/24 -i enp0s8 -o enp0s10 --sport 444 -j ACCEPT
+
+iptables -A FORWARD -p tcp -d 23.214.219.129 -i enp0s3 -o enp0s8 --dport 444 -j ACCEPT
+iptables -A FORWARD -p tcp -s 23.214.219.129 -i enp0s8 -o enp0s3 --sport 444 -j ACCEPT
+
+iptables -A FORWARD -p udp -s 192.168.10.0/24 -d 23.214.219.129 -i enp0s10 -o enp0s8 --dport 1194 -j ACCEPT
+iptables -A FORWARD -p udp -s 23.214.219.129 -d 192.168.10.0/24 -i enp0s8 -o enp0s10 --sport 1194 -j ACCEPT
+
+iptables -A FORWARD -p udp -d 23.214.219.129 -i enp0s3 -o enp0s8 --dport 1194 -j ACCEPT
+iptables -A FORWARD -p udp -s 23.214.219.129 -i enp0s8 -o enp0s3 --sport 1194 -j ACCEPT
+
+#VPN clients connected to the gateway (vpn-gw) should able to connect to the PostgreSQL services on the datastore server
+iptables -A FORWARD -p tcp -s 23.214.219.129 -d 192.168.10.1 -i enp0s8 -o enp0s10 --dport 5432 -j ACCEPT
+iptables -A FORWARD -p tcp -s 192.168.10.1 -d 23.214.219.129 -i enp0s10 -o enp0s8 --sport 5432 -j ACCEPT
+
+#FTP connections (in passive and active modes) to the ftp server
+#ACTIVE
+iptables -A FORWARD -p tcp -d 192.168.10.1 -i enp0s3 -o enp0s10 --dport 21 -j ACCEPT
+iptables -A FORWARD -p tcp -s 192.168.10.1 -i enp0s10 -o enp0s3 --sport 20 -j ACCEPT
+
+#PASSIVE
+iptables -A FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT
+modprobe nf_conntrack_ftp
+modprobe ip_nat_ftp
+
+iptables -t nat -A PREROUTING -p tcp -s 87.248.214.91 -d 87.248.214.97 -i enp0s3 --dport 21 -j DNAT --to-destination 192.168.10.1
+
+#SSH connections to the datastore server, but only if originated at the eden server
+#DNS2
+iptables -A FORWARD -p tcp -s 87.248.214.90 -d 192.168.10.1 -i enp0s3 -o enp0s10 --dport 22 -j ACCEPT
+iptables -A FORWARD -p tcp -s 192.168.10.1 -d 87.248.214.90 -i enp0s10 -o enp0s3 ! --syn -j ACCEPT
+
+iptables -t nat -A PREROUTING -p tcp -s 87.248.214.90 -d 87.248.214.97 -i enp0s3 --dport 22 -j DNAT --to-destination 192.168.10.1
+
+#EDEN
+iptables -A FORWARD -p tcp -s 87.248.214.91 -d 192.168.10.1 -i enp0s3 -o enp0s10 --dport 22 -j ACCEPT
+iptables -A FORWARD -p tcp -s 192.168.10.1 -d 87.248.214.91 -i enp0s10 -o enp0s3 ! --syn -j ACCEPT
+
+iptables -t nat -A PREROUTING -p tcp -s 87.248.214.91 -d 87.248.214.97 -i enp0s3 --dport 22 -j DNAT --to-destination 192.168.10.1
+
+#Domain name resolutions using DNS
+
+iptables -A FORWARD -p udp -s 192.168.10.0/24 -i enp0s10 -o enp0s3 --dport 53 -j ACCEPT
+iptables -A FORWARD -p udp -d 192.168.10.0/24 -i enp0s3 -o enp0s10 --sport 53 -j ACCEPT
+
+#iptables -A FORWARD -p udp -d 192.168.10.0/24 -i enp0s3 -o enp0s10 --sport 53 -j ACCEPT
+iptables -t nat -A POSTROUTING -p udp -s 192.168.10.0/24 -o enp0s3 --dport 53 -j SNAT --to-source 87.248.214.97
+
+#HTTP,HTTPS and SSH connections
+#HTTP
+iptables -A FORWARD -p tcp -s 192.168.10.0/24 -i enp0s10 -o enp0s3 --dport 80 -j ACCEPT
+iptables -A FORWARD -p tcp -d 192.168.10.0/24 -i enp0s3 -o enp0s10 --sport 80 -j ACCEPT
+
+iptables -t nat -A POSTROUTING -p tcp -s 192.168.10.0/24 -o enp0s3 --dport 80 -j SNAT --to-source 87.248.214.97
+
+#HTTPs
+iptables -A FORWARD -p tcp -s 192.168.10.0/24 -i enp0s10 -o enp0s3 --dport 443 -j ACCEPT
+iptables -A FORWARD -p tcp -d 192.168.10.0/24 -i enp0s3 -o enp0s10 --sport 443 -j ACCEPT
+
+iptables -t nat -A POSTROUTING -p tcp -s 192.168.10.1/24 -o enp0s3 --dport 443 -j SNAT --to-source 87.248.214.97
+
+#SSH
+iptables -A FORWARD -p tcp -s 192.168.10.0/24 -i enp0s10 -o enp0s3 --dport 22 -j ACCEPT
+iptables -A FORWARD -p tcp -d 192.168.10.0/24 -i enp0s3 -o enp0s10 --sport 22 -j ACCEPT
+
+iptables -t nat -A PREROUTING -p tcp -s 192.168.10.0/24 -d 87.248.214.97 -i enp0s10 --dport 22 -j DNAT --to-destination 87.248.214.90
+
+
+#iptables -t nat -A POSTROUTING -p tcp -s 192.168.10.0/24 -o enp0s3 --dport 22 -j SNAT --to-source 87.248.214.97
+
+#FTP connections (in passive and active modes) to the ftp server
+#ACTIVE
+iptables -A FORWARD -p tcp -d 192.168.10.0/24 -i enp0s10 -o enp0s3 --dport 21 -j ACCEPT
+iptables -A FORWARD -p tcp -s 192.168.10.0/24 -i enp0s3 -o enp0s10 --sport 1024 -j ACCEPT
+
+
+#PASSIVE
+iptables -A FORWARD -m state --state RELATED,ESTABLISHED -j ACCEPT
+modprobe nf_conntrack_ftp
+modprobe ip_nat_ftp
+
+iptables -t nat -A POSTROUTING -p tcp -s 192.168.10.0/24 -o enp0s3 --dport 21 -j SNAT --to-source 87.248.214.97
+
+iptables -P INPUT DROP
+iptables -P OUTPUT DROP
+iptables -P FORWARD DROP
+
+modprobe nfnetlink_queue
